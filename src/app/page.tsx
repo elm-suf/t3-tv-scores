@@ -1,14 +1,21 @@
-import { Button } from "~/components/ui/button";
-import { api, HydrateClient } from "~/trpc/server";
+import { HydrateClient } from "~/trpc/server";
+import { CommandDialogDemo } from "./components/command-dialog";
 
 export default async function Home() {
   // void api.post.getLatest.prefetch();
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <h1>t3-tv-scores</h1>
-        <Button>Click me</Button>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 border-4 p-4 text-center">
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+          Uncover the Best of TV, One Episode at a Time.
+        </h1>
+        <p className="text-muted-foreground text-xl">
+          Discover episode ratings at a glance and find your next binge-worthy
+          series.
+        </p>
+
+        <CommandDialogDemo />
       </main>
     </HydrateClient>
   );
