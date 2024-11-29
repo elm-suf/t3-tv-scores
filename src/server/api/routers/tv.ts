@@ -1,14 +1,25 @@
-import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { Search, TV } from "types";
+import { type Search, type TV } from "types";
+import { z } from "zod";
 
 export const tvSearchRouter = createTRPCRouter({
   search: publicProcedure
-    .input(z.object({ query: z.string() }))
+    .input(
+      z.object({
+        query: z.string(),
+      }),
+    )
     .query(async ({ input }) => {
-      const params = new URLSearchParams(input);
+      const apiKey = process.env.TMDB_API_TOKEN;
+      if (!apiKey) {
+        throw new Error(
+          "TMDB_API_TOKEN is not defined in the environment variables.",
+        );
+      }
+
+      const params = new URLSearchParams({ query: input.query });
       const url = `https://api.themoviedb.org/3/search/tv?${params}`;
-      const apiKey = process.env["TMDB_API_TOKEN"];
+
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -20,8 +31,8 @@ export const tvSearchRouter = createTRPCRouter({
         throw new Error(`TMDb API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as Search<TV>;
 
-      return data as Search<TV>;
+      return data;
     }),
 });

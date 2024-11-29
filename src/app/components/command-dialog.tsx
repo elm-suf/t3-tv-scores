@@ -73,7 +73,7 @@ export function CommandDialogDemo() {
             </CommandEmpty>
 
             {/* Data Rendering Logic */}
-            {data && data.results && data.results.length > 0 && (
+            {data?.results && data.results.length > 0 && (
               <CommandGroup heading="Results">
                 {data.results
                   .filter((el) => el.poster_path) // Only show results with poster images
