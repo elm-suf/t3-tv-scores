@@ -40,7 +40,7 @@ export function CommandDialogDemo() {
     <>
       {/* CTA */}
       <p
-        className="text-muted-foreground cursor-pointer text-sm"
+        className="text-muted-foreground cursor-pointer text-sm gap-2 flex p-1"
         onClick={() => setOpen((prevOpen) => !prevOpen)}
       >
         <span> Click or </span>
