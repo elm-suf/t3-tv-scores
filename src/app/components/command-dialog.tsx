@@ -1,8 +1,9 @@
 "use client";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import * as React from "react";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import * as React from "react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import {
   CommandDialog,
   CommandEmpty,
@@ -12,7 +13,7 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import { api } from "~/trpc/react";
-import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { useDebounce } from "@uidotdev/usehooks";
 
 export function CommandDialogDemo() {
   const [term, setTerm] = React.useState("");
@@ -31,21 +32,27 @@ export function CommandDialogDemo() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const { data, isLoading, isError } = api.tv.search.useQuery(
-    { query: term },
-    { enabled: term.length > 0 }, // Query runs only if term is not empty
+  // Fetching results with debounced search term
+  const debouncedSearchTerm = useDebounce(term, 300);
+  const {
+    data = { results: [] },
+    isLoading,
+    isError,
+  } = api.tv.search.useQuery(
+    { query: debouncedSearchTerm },
+    { enabled: term.length > 0 },
   );
 
   return (
     <>
       {/* CTA */}
       <p
-        className="text-muted-foreground cursor-pointer text-sm gap-2 flex p-1"
+        className="flex cursor-pointer gap-2 p-1 text-sm text-muted-foreground"
         onClick={() => setOpen((prevOpen) => !prevOpen)}
       >
         <span> Click or </span>
         Press{" "}
-        <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100">
+        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
           <span className="text-xs">⌘</span>J
         </kbd>
       </p>
@@ -61,39 +68,41 @@ export function CommandDialogDemo() {
           onValueChange={setTerm}
         />
 
-        {term.length > 0 && (
-          <CommandList>
-            {/* Empty State Logic */}
-            <CommandEmpty>
-              {isLoading
+        <CommandList>
+          {/* Empty State Logic */}
+          <CommandEmpty>
+            {term.length > 0 &&
+              (isLoading
                 ? "Searching..."
                 : isError
                   ? "Some error occurred"
-                  : "No results found."}
-            </CommandEmpty>
+                  : "No results found.")}
 
-            {/* Data Rendering Logic */}
-            {data?.results && data.results.length > 0 && (
-              <CommandGroup heading="Results">
-                {data.results
-                  .filter((el) => el.poster_path) // Only show results with poster images
-                  .map((_, index) => (
-                    <CommandItem key={index} value={_.name}>
-                      <Avatar className="flex items-center gap-2">
-                        <AvatarImage
-                          src={`https://image.tmdb.org/t/p/w500/${_.poster_path}`}
-                          alt={_.name}
-                          className="h-12 w-12 rounded-full object-cover"
-                        />
-                        <AvatarFallback>CN</AvatarFallback>
-                        {_.name}
-                      </Avatar>
-                    </CommandItem>
-                  ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        )}
+            {/* eslint-disable-next-line */}
+            <img className="mx-auto h-52" src="https://i.gifer.com/40Oj.gif" />
+          </CommandEmpty>
+
+          {/* Data Rendering Logic */}
+          {Array.isArray(data?.results) && data.results.length > 0 && (
+            <CommandGroup heading="Results">
+              {data.results
+                .filter((el) => el.poster_path)
+                .map((el, index) => (
+                  <CommandItem key={index} value={el.name}>
+                    <Avatar className="flex items-center gap-2">
+                      <AvatarImage
+                        src={`https://image.tmdb.org/t/p/w500/${el.poster_path}`}
+                        alt={el.name}
+                        className="h-12 w-12 rounded-full object-cover"
+                      />
+                      <AvatarFallback>CN</AvatarFallback>
+                      {el.name}
+                    </Avatar>
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          )}
+        </CommandList>
       </CommandDialog>
     </>
   );
