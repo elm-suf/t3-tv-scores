@@ -1,10 +1,10 @@
 import {
-  Genre,
-  ProductionCompany,
-  ProductionCountry,
-  SpokenLanguage,
-  LanguageOption,
-} from './';
+  type Genre,
+  type ProductionCompany,
+  type ProductionCountry,
+  type SpokenLanguage,
+  type LanguageOption,
+} from "./";
 
 export interface CreatedBy {
   id: number;

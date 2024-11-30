@@ -14,6 +14,8 @@ import {
 } from "~/components/ui/command";
 import { api } from "~/trpc/react";
 import { useDebounce } from "@uidotdev/usehooks";
+import { type TV } from "types";
+import { useRouter } from "next/navigation";
 
 export function CommandDialogDemo() {
   const [term, setTerm] = React.useState("");
@@ -43,6 +45,12 @@ export function CommandDialogDemo() {
     { enabled: term.length > 0 },
   );
 
+  const router = useRouter();
+  function handleSelection(el: TV): void {
+    setOpen(false); // Close the dialog
+    void router.push(`/tv/${el.id}`); // Suppress warning for unhandled promise
+  }
+
   return (
     <>
       {/* CTA */}
@@ -51,7 +59,7 @@ export function CommandDialogDemo() {
         onClick={() => setOpen((prevOpen) => !prevOpen)}
       >
         <span> Click or </span>
-        Press{" "}
+        Press to search {" "}
         <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
           <span className="text-xs">⌘</span>J
         </kbd>
@@ -88,7 +96,11 @@ export function CommandDialogDemo() {
               {data.results
                 .filter((el) => el.poster_path)
                 .map((el, index) => (
-                  <CommandItem key={index} value={el.name}>
+                  <CommandItem
+                    key={index}
+                    value={el.name}
+                    onSelect={() => handleSelection(el)}
+                  >
                     <Avatar className="flex items-center gap-2">
                       <AvatarImage
                         src={`https://image.tmdb.org/t/p/w500/${el.poster_path}`}
