@@ -5,10 +5,14 @@ import { api, HydrateClient } from "~/trpc/server";
 export default async function TVShowPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  // Await the params promise to get the actual id
+  const { id } = await params;
+
+  // Fetching the data using the series ID from params
   const { showDetails, seasons } = await api.tv.getSeriesById({
-    seriesId: params.id,
+    seriesId: +id,
   });
 
   return (
@@ -58,7 +62,9 @@ export default async function TVShowPage({
             {seasons.map((season, index) => (
               <div key={index}>
                 {season.episodes.map((ep, idx) => (
-                  <span className="border" key={idx}> {ep.vote_average} </span>
+                  <span className="border" key={idx}>
+                    {ep.vote_average}
+                  </span>
                 ))}
               </div>
             ))}

@@ -1,11 +1,11 @@
-import { TMDB } from "tmdb-ts";
+import { TMDB, type TvShowDetails } from "tmdb-ts";
 import { z } from "zod";
 import { publicProcedure } from "../trpc";
 
 export const getSeriesById = publicProcedure
   .input(
     z.object({
-      seriesId: z.string(),
+      seriesId: z.number(),
     }),
   )
   .query(async ({ input }) => {
@@ -19,7 +19,9 @@ export const getSeriesById = publicProcedure
     const tmdb = new TMDB(apiKey);
 
     // Fetch basic TV show details (without seasons)
-    const showDetails = await tmdb.tvShows.details(+input.seriesId);
+    const showDetails = (await tmdb.tvShows.details(
+      input.seriesId,
+    )) as TvShowDetails;
 
     console.debug(`showDetails`, showDetails);
     // Fetch seasons in parallel using Promise.all
