@@ -2,10 +2,10 @@
 
 import { Group } from "@visx/group";
 import { HeatmapCircle } from "@visx/heatmap";
-import { type Bins } from '@visx/mock-data/lib/generators/genBins';
+import { type Bin } from "@visx/mock-data/lib/generators/genBins";
 import { ParentSize } from "@visx/responsive";
-import { scaleBand, scaleLinear } from "@visx/scale";
-import { type SeasonDetails } from "tmdb-ts";
+import { scaleLinear } from "@visx/scale";
+import { type Episode, type SeasonDetails } from "tmdb-ts";
 
 // helpers
 function max<T>(data: T[], value: (d: T) => number): number {
@@ -17,82 +17,128 @@ function min<T>(data: T[], value: (d: T) => number): number {
 }
 
 // constants
-const background = "#28272c"
-const cool1 = '#122549';
-const cool2 = '#b4fbde';;
-const hot1 = '#77312f';
-const hot2 = '#f33d15';
+const background = "#28272c";
+const cool1 = "#122549";
+const cool2 = "#b4fbde";
+const hot1 = "#77312f";
+const hot2 = "#f33d15";
 
 const defaultMargin = { top: 20, left: 20, right: 20, bottom: 20 };
-function ChartComponent(w: number, h: number, binData: SeasonDetails[], margin = defaultMargin) {
+
+export type HeatMapBin = Bin & Partial<Episode>;
+
+function getBinData(seasons: SeasonDetails[], desktopView: boolean) {
+  const maxEpisodes = max(seasons, (s) => s.episodes.length);
+
+  if (desktopView) {
+    const bins = new Array(maxEpisodes).fill(null).map((_, epIndex) => {
+      return {
+        bin: epIndex + 1,
+
+        bins: new Array(seasons.length)
+          .fill(null)
+          .map((_, seasonIndex) => seasons[seasonIndex]?.episodes[epIndex])
+          .map<HeatMapBin>((ep, seasonIndex) => ({
+            ...ep,
+            bin: ep?.season_number ?? seasonIndex + 1,
+            count: ep?.vote_average ?? -1,
+          })),
+      };
+    });
+
+    return bins;
+  }
+
+  return seasons.map((season, seasonIndex) => ({
+    bin: seasonIndex + 1, // Season number
+    bins: season.episodes.map<HeatMapBin>((episode, episodeIndex) => ({
+      bin: episodeIndex + 1, // Episode number
+      count: episode.vote_average, // Rating value
+      ...episode,
+    })),
+  }));
+}
+
+function ChartComponent(
+  w: number,
+  h: number,
+  seasons: SeasonDetails[],
+  margin = defaultMargin,
+) {
+  const desktopView = w > 600;
+
+  const binData = getBinData(seasons, desktopView);
+
   const width = w - margin.left - margin.right;
   const height = h - margin.top - margin.bottom;
 
+  const xScale = scaleLinear({
+    domain: [0, binData.length],
+    range: [0, width],
+  });
 
-  // Given a column / season index, returns the x position of a circle cell.
-  const xScale = scaleLinear({ domain: [0, binData.length], range: [0, width], });
+  const yScale = scaleLinear({
+    domain: [0, Math.max(...binData.map((season) => season.bins.length))],
+    range: [0, height],
+  });
 
-  // Given a row / episode  index, returns the y position of a circle cell.
-  const yScale = scaleLinear({ domain: [0, Math.max(...binData.map((season) => season.episodes.length))], range: [0, height] });
-
-  const colorScale = scaleLinear({ range: ['#FF0000', '#008000'], domain: [0, 10] });
+  const colorScale = scaleLinear({
+    range: [cool1, cool2],
+    domain: [1, 10],
+  });
   const opacityScale = scaleLinear({ domain: [0, 10], range: [0.1, 1] });
 
   const binWidth = width / binData.length;
-  const binHeight = height / max(binData, (season) => season.episodes.length);
+  const binHeight = height / max(binData, (season) => season.bins.length);
   const radius = min([binWidth, binHeight], (d) => d) / 2;
 
   return (
     <>
-      <svg width={w} height={h} >
+      <svg width={w} height={h}>
         <rect x={0} y={0} width={w} height={h} rx={14} fill={background} />
         <Group top={margin.top} left={margin.left}>
           <HeatmapCircle
             data={binData}
             xScale={xScale}
             yScale={yScale}
-            bins={(season) => season.episodes}
-            count={(episode) => episode.vote_average}
+            bins={(season) => season.bins}
+            count={(episode) => episode.vote_average ?? -1}
             colorScale={colorScale}
             opacityScale={opacityScale}
             radius={radius}
             gap={4}
-          >{(heatmap) =>
-            heatmap.map((heatmapBins) =>
-              heatmapBins.map((bin) => (
-                <>
-                  <circle
-                    key={`heatmap-circle-${bin.row}-${bin.column}`}
-                    className="visx-heatmap-circle"
-                    cx={bin.cx}
-                    cy={bin.cy}
-                    r={bin.r}
-                    fill={bin.color}
-                    fillOpacity={bin.opacity}
-
-                    onClick={() => {
-                      const debug = [
-                        { row: bin.row, col: bin.column },
-                        { scaleRow: { x: xScale(bin.row), y: yScale(bin.row), } },
-                        { scaleColumn: { x: xScale(bin.column), y: yScale(bin.column), } },
-                        { cx: bin.cx, cy: bin.cy, },
-                        {
-                          season: bin.bin.season_number, episode: bin.bin.episode_number,
-                        }
-                      ]
-                      debug.forEach(i => console.debug(i))
-                      // alert(JSON.stringify(debug));
-                    }}
-                  />
-                  <text
-                    key={`heatmap-circle-text-${bin.row}-${bin.column}`}
-                    x={bin.cx} y={bin.cy} font-size="20" text-anchor="middle" alignment-baseline="middle" fill="black">
-                    ep{bin.bin.season_number}-{bin.bin.episode_number}
-                    col{bin.column}-row{bin.row}
-                  </text>
-                </>
-              )),
-            )
+          >
+            {(heatmap) =>
+              heatmap.map((heatmapBins) =>
+                heatmapBins.map((bin) => (
+                  <>
+                    <circle
+                      key={`heatmap-circle-${bin.row}-${bin.column}`}
+                      className="visx-heatmap-circle"
+                      cx={bin.cx}
+                      cy={bin.cy}
+                      r={bin.r}
+                      fill={bin.color}
+                      fillOpacity={bin.opacity}
+                      onClick={() => {
+                        const data: HeatMapBin = bin.bin;
+                        console.debug(data.name);
+                      }}
+                    />
+                    <text
+                      key={`heatmap-circle-text-${bin.row}-${bin.column}`}
+                      x={bin.cx}
+                      y={bin.cy}
+                      font-size="20"
+                      text-anchor="middle"
+                      alignment-baseline="middle"
+                      fill="black"
+                    >
+                      {bin.bin.vote_average?.toFixed(2)}
+                    </text>
+                  </>
+                )),
+              )
             }
           </HeatmapCircle>
         </Group>
@@ -101,18 +147,15 @@ function ChartComponent(w: number, h: number, binData: SeasonDetails[], margin =
   );
 }
 
-
-
 export type HeatmapProps = {
   seasons: SeasonDetails[];
 };
 function Heatmap({ seasons = [] }: HeatmapProps) {
-
   return (
     <>
       <ParentSize>
         {({ width, height }) => {
-          return ChartComponent(width, height, seasons)
+          return ChartComponent(width, height, seasons);
         }}
       </ParentSize>
     </>
