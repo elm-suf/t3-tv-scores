@@ -18,13 +18,10 @@ export const getSeriesById = publicProcedure
 
     const tmdb = new TMDB(apiKey);
 
-    // Fetch basic TV show details (without seasons)
     const showDetails = (await tmdb.tvShows.details(
       input.seriesId,
     )) as TvShowDetails;
 
-    console.debug(`showDetails`, showDetails);
-    // Fetch seasons in parallel using Promise.all
     const seasonPromises =
       showDetails.seasons
         .filter((season) => season.season_number > 0)
@@ -32,12 +29,17 @@ export const getSeriesById = publicProcedure
           tmdb.tvShows.season(+input.seriesId, season.season_number),
         ) || [];
 
-    // Wait for all season data to be fetched in parallel
     const seasons = await Promise.all(seasonPromises);
-    console.debug(`seasons`, seasons);
+
+    seasons.forEach((season) => {
+      season.episodes.forEach((ep) => {
+        ep.crew = [];
+        ep.guest_stars = [];
+      });
+    });
 
     return {
-      showDetails, // Return the raw TV show details
-      seasons, // Return the raw seasons data
+      showDetails,
+      seasons,
     };
   });
