@@ -47,6 +47,9 @@ importers:
       '@visx/heatmap':
         specifier: ^3.12.0
         version: 3.12.0(react@18.3.1)
+      '@visx/legend':
+        specifier: ^3.12.0
+        version: 3.12.0(react@18.3.1)
       '@visx/mock-data':
         specifier: ^3.12.0
         version: 3.12.0
@@ -59,6 +62,9 @@ importers:
       '@visx/shape':
         specifier: ^3.12.0
         version: 3.12.0(react@18.3.1)
+      '@visx/vendor':
+        specifier: ^3.12.0
+        version: 3.12.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1079,6 +1085,11 @@ packages:
 
   '@visx/heatmap@3.12.0':
     resolution: {integrity: sha512-+YhXHfMvwQOMf9xMd15FUOoiKqf84o1UF0zsmnNsCC75MqFMpjvzc3DeoC37fi69iBIKchU8DjhVubvCE9N4jA==}
+    peerDependencies:
+      react: ^16.3.0-0 || ^17.0.0-0 || ^18.0.0-0
+
+  '@visx/legend@3.12.0':
+    resolution: {integrity: sha512-Tr6hdauEDXRXVNeNgIQ9JtCCrxn8Fbr8UCVlO9XsSxenk2hBC/2PIY5QPzpnKFEEEuH/C8vhj8T0JfFZV+D9zQ==}
     peerDependencies:
       react: ^16.3.0-0 || ^17.0.0-0 || ^18.0.0-0
 
@@ -3509,6 +3520,15 @@ snapshots:
     dependencies:
       '@types/react': 18.3.12
       '@visx/group': 3.12.0(react@18.3.1)
+      classnames: 2.5.1
+      prop-types: 15.8.1
+      react: 18.3.1
+
+  '@visx/legend@3.12.0(react@18.3.1)':
+    dependencies:
+      '@types/react': 18.3.12
+      '@visx/group': 3.12.0(react@18.3.1)
+      '@visx/scale': 3.12.0
       classnames: 2.5.1
       prop-types: 15.8.1
       react: 18.3.1

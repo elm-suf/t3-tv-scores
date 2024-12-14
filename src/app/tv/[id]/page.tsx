@@ -1,5 +1,6 @@
 import { CommandDialogDemo } from "~/app/components/command-dialog";
 import { DarkModeToggle } from "~/app/components/dark-mode-toggle";
+import Heatmap from "~/app/components/heatmap/heatmap";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function TVShowPage({
@@ -17,36 +18,39 @@ export default async function TVShowPage({
 
   return (
     <HydrateClient>
-      <div className="flex min-h-screen flex-col border-4">
-        <div className="fixed right-4 top-4">
-          <DarkModeToggle />
-        </div>
-        <div className="fixed bottom-4 right-4">
-          <CommandDialogDemo />
-        </div>
+      <div className="fixed right-4 top-4">
+        <DarkModeToggle />
+      </div>
+      <div className="fixed bottom-4 right-4">
+        <CommandDialogDemo />
+      </div>
 
-        <header className="h-12 bg-red-400">
-          <h1 id="header" className="">
+      <div className="flex min-h-screen flex-col border-4">
+        <header className="flex h-16 items-center border pl-4">
+          <h1
+            id="header"
+            className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl"
+          >
             {showDetails.name}
           </h1>
         </header>
 
-        <main className="flex flex-1 bg-slate-500">
+        <main className="flex flex-1">
           <section
             id="left-aside"
-            className="flex flex-col gap-4 border bg-green-400 p-4"
+            className="flex  w-1/5 min-w-72 max-w-md flex-col gap-4 border-r p-4"
           >
             {showDetails.poster_path ? (
               <img
                 src={`https://image.tmdb.org/t/p/w500/${showDetails.poster_path}`}
                 alt={showDetails.name}
-                className="h-96 w-full rounded-lg object-cover shadow-lg"
+                className=" aspect-square w-full rounded-full object-cover shadow-lg"
               />
             ) : (
               <div className="h-96 w-full rounded-lg bg-gray-200"></div>
             )}
 
-            <div id="seasons" className="flex-1 border">
+            <div id="seasons" className="flex-1">
               <ul className="flex flex-col gap-2">
                 {showDetails.seasons.map((season, index) => (
                   <li key={index}>
@@ -57,17 +61,11 @@ export default async function TVShowPage({
             </div>
           </section>
 
-          <section>
-            <h2>chart section</h2>
-            {seasons.map((season, index) => (
-              <div key={index}>
-                {season.episodes.map((ep, idx) => (
-                  <span className="border" key={idx}>
-                    {ep.vote_average}
-                  </span>
-                ))}
-              </div>
-            ))}
+          <section className="flex max-h-[90vh] flex-1 flex-col gap-4 p-4 pb-8">
+            <div className="flex items-center justify-center">
+              <h2 className="">chart section</h2>
+            </div>
+            <Heatmap seasons={seasons} />
           </section>
         </main>
       </div>
