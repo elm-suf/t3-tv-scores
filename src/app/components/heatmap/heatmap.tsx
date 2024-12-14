@@ -3,23 +3,15 @@
 
 import { Group } from "@visx/group";
 import { HeatmapCircle } from "@visx/heatmap";
-import { type Bin } from "@visx/mock-data/lib/generators/genBins";
-import { ParentSize } from "@visx/responsive";
-import { scaleLinear, scaleLog, scalePower, scaleQuantile } from "@visx/scale";
-import { interpolateRdYlGn } from "d3-scale-chromatic";
-import { type Episode, type SeasonDetails } from "tmdb-ts";
 import {
-  Legend,
-  LegendLinear,
-  LegendQuantile,
-  LegendOrdinal,
-  LegendSize,
-  LegendThreshold,
   LegendItem,
   LegendLabel,
+  LegendLinear
 } from "@visx/legend";
-import { format } from "@visx/vendor/d3-format";
-import { scaleDiverging } from "@visx/vendor/d3-scale";
+import { type Bin } from "@visx/mock-data/lib/generators/genBins";
+import { ParentSize } from "@visx/responsive";
+import { scaleLinear } from "@visx/scale";
+import { type Episode, type SeasonDetails } from "tmdb-ts";
 
 // Utility functions for max and min calculations
 const max = <T,>(data: T[], value: (d: T) => number): number =>
